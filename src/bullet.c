@@ -3,6 +3,27 @@
 #include "math.h"
 #include "config.h"
 
+/*
+ * ── LCG Random Number Generator ──────────────────────────────────────────
+ * A Linear Congruential Generator (LCG) is the simplest viable pseudo-random
+ * number source. It needs no <stdlib.h> rand() — forbidden for core logic.
+ *
+ * Formula: seed = seed * A + C  (mod 2^32, happens naturally with unsigned)
+ * Constants A=1664525, C=1013904223 are the classic Numerical Recipes values.
+ */
+static unsigned int rng_seed = 73819u;
+
+static unsigned int lcg_rand(void) {
+    rng_seed = rng_seed * 1664525u + 1013904223u;
+    return rng_seed;
+}
+
+/* Returns a random column inside the play area [PLAY_X_MIN .. PLAY_X_MAX]. */
+static int rand_x(void) {
+    int range = PLAY_X_MAX - PLAY_X_MIN + 1;
+    return PLAY_X_MIN + (int)(lcg_rand() % (unsigned int)range);
+}
+
 /* ── Bullet pool ─────────────────────────────────────────────────────── */
 static Bullet bullets[MAX_BULLETS];
 
