@@ -41,9 +41,7 @@
 #define HUD_SCORE_COL        2
 
 /* ── Timing ──────────────────────────────────────────────────────────── */
-#define TARGET_FPS          20
-#define FRAME_MS            (1000 / TARGET_FPS)
-#define BUSY_WAIT_ITERS     4000000
+#define BUSY_WAIT_ITERS     1000000
 
 /* ── Memory pool ─────────────────────────────────────────────────────── */
 #define POOL_SIZE_BYTES     (64 * 1024)
