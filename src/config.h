@@ -45,6 +45,8 @@
 
 /* ── Bullets ──────────────────────────────────────────────────────────── */
 #define MAX_BULLETS          5         /* max simultaneous bullets on screen */
+#define BULLET_SPEED_FRAMES  80        /* bullet drops 1 row every N frames  */
+#define BULLET_SPAWN_FRAMES  300       /* new bullet spawns every N frames   */
 #define BULLET_GLYPH         '*'
 
 /* ── Scoring ─────────────────────────────────────────────────────────── */

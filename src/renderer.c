@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "screen.h"
 #include "hud.h"
+#include "bullet.h"
 #include "config.h"
 
 /* ── draw_boundary ───────────────────────────────────────────────────── */
@@ -46,9 +47,10 @@ static void draw_boundary(void) {
 void renderer_draw_frame(const Player *p) {
     screen_clear();
 
-    draw_boundary();       /* layer 1: walls  */
-    player_draw(p);        /* layer 2: plane  */
-    hud_draw();            /* layer 3: score  */
+    draw_boundary();       /* layer 1: walls             */
+    bullets_draw();        /* layer 2: falling bullets   */
+    player_draw(p);        /* layer 3: plane (on top)    */
+    hud_draw();            /* layer 4: score HUD         */
 
     screen_flip();
 }
