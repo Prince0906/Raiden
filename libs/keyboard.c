@@ -82,3 +82,23 @@ Key kb_get_key(void) {
         default: return KEY_NONE;
     }
 }
+
+/* ── kb_drain_key ────────────────────────────────────────────────────── */
+/*
+ * When a key is held down the OS key-repeat mechanism floods stdin with
+ * repeated copies of that keycode. If the game loop only reads ONE byte
+ * per frame, the buffer backs up — switching directions feels "laggy"
+ * because the old repeated keys must drain before the new key is seen.
+ *
+ * Fix: read EVERY pending byte this frame in a tight loop and discard
+ * all but the LAST one. With VMIN=0 / VTIME=0 the inner kb_get_key()
+ * always returns immediately, so this loop is fully non-blocking.
+ */
+Key kb_drain_key(void) {
+    Key last = KEY_NONE;
+    Key k;
+    while ((k = kb_get_key()) != KEY_NONE) {
+        last = k;
+    }
+    return last;
+}

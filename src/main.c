@@ -9,6 +9,7 @@
 #include "bullet.h"
 #include "hud.h"
 #include "renderer.h"
+#include "gameover.h"
 
 /* ── busy_wait ───────────────────────────────────────────────────────── */
 static void busy_wait(void) {
@@ -52,6 +53,11 @@ int main(void) {
 
         busy_wait();
         frame++;
+    }
+
+    /* 4. Hand off to the game over component if killed by a bullet */
+    if (hit) {
+        gameover_show();
     }
 
     /* 5. Cleanup */

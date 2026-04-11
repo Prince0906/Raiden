@@ -65,6 +65,10 @@ static void spawn_bullet(void) {
 void bullets_update(unsigned int frame) {
     int i;
 
+    /* Spawn: skip frame 0 so the player has a grace period */
+    if (frame > 0 && frame % BULLET_SPAWN_FRAMES == 0) {
+        spawn_bullet();
+    }
 
     /* Move: drop every active bullet one row */
     if (frame % BULLET_SPEED_FRAMES == 0) {
