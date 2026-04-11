@@ -41,7 +41,14 @@
 #define HUD_SCORE_COL        2
 
 /* ── Timing ──────────────────────────────────────────────────────────── */
-#define BUSY_WAIT_ITERS     1000000
+#define BUSY_WAIT_ITERS     2000000
+
+/* ── Bullets ──────────────────────────────────────────────────────────── */
+#define MAX_BULLETS          5         /* max simultaneous bullets on screen */
+#define BULLET_GLYPH         '*'
+
+/* ── Scoring ─────────────────────────────────────────────────────────── */
+#define SCORE_INTERVAL       60        /* score +1 every N frames            */
 
 /* ── Memory pool ─────────────────────────────────────────────────────── */
 #define POOL_SIZE_BYTES     (64 * 1024)
