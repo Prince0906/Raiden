@@ -52,7 +52,7 @@
 
 /* ── Player health ────────────────────────────────────────────────────── */
 #define PLAYER_MAX_HEALTH        100
-#define PLAYER_INVINCIBLE_FRAMES 300  /* frames of immunity after taking a hit */
+#define PLAYER_INVINCIBLE_FRAMES 200  /* frames of immunity after taking a hit */
 
 /* ── Scoring ─────────────────────────────────────────────────────────── */
 #define SCORE_INTERVAL       60

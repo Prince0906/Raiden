@@ -41,7 +41,13 @@ int main(void) {
         player_update(player);       /* tick invincibility countdown */
         bullets_update(frame);
 
-
+        /* b. Collision — bullet hit? apply damage, don't die instantly */
+        {
+            int dmg = bullets_check_hit(player->x, player->y);
+            if (dmg > 0) {
+                player_take_damage(player, dmg);
+            }
+        }
 
         /* c. Score ticks up just for surviving */
         if (frame % SCORE_INTERVAL == 0) {

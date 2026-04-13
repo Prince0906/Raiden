@@ -50,6 +50,10 @@ void player_take_damage(Player *p, int dmg) {
     p->invincible = PLAYER_INVINCIBLE_FRAMES;
 }
 
+/* ── player_is_dead ──────────────────────────────────────────────────── */
+int player_is_dead(const Player *p) {
+    return p->health <= 0;
+}
 
 /* ── player_draw ─────────────────────────────────────────────────────── */
 /*

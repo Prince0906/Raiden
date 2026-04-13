@@ -14,6 +14,7 @@ typedef struct {
     int x;
     int y;
     int health;
+    int invincible;
 } Player;
 
 Player *player_init(void);

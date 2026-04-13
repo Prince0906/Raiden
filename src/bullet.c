@@ -104,6 +104,7 @@ int bullets_check_hit(int px, int py) {
             (bx == px   && by == py + 1) ||
             (bx == px+1 && by == py + 1)) {
             int dmg = bullets[i].damage;
+            bullets[i].active = 0;   /* consume the bullet */
             return dmg;
         }
     }
