@@ -53,4 +53,7 @@ void hud_draw(int health) {
         screen_draw_char(54 + i, HUD_ROW, i < filled ? '=' : '-');
     }
     screen_draw_char(64, HUD_ROW, ']');
+
+    int_to_str(health, buf, INT_BUF_SIZE);
+    screen_draw_str(66, HUD_ROW, buf);
 }
