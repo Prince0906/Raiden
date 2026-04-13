@@ -50,7 +50,7 @@ void renderer_draw_frame(const Player *p) {
     draw_boundary();       /* layer 1: walls             */
     bullets_draw();        /* layer 2: falling bullets   */
     player_draw(p);        /* layer 3: plane (on top)    */
-    hud_draw();            /* layer 4: score HUD         */
+    hud_draw(p->health);   /* layer 4: score + HP bar  */
 
     screen_flip();
 }

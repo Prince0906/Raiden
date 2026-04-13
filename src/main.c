@@ -25,42 +25,42 @@ int main(void) {
     screen_init();
 
     /* 2. Allocate game entities */
-    Player *player = player_init();
+    Player *player = player_init();   /* health = 100, invincible = 0 */
     bullets_init();
     hud_init();
 
     /* 3. Game loop: Input → Update → Render → Wait */
     unsigned int frame = 0;
-    int          hit   = 0;
 
-    while (!hit) {
-        Key k = kb_get_key();
+    while (!player_is_dead(player)) {
+        Key k = kb_drain_key();
         if (k == KEY_Q) break;
 
+        /* a. Update state */
         player_move(player, k);
+        player_update(player);       /* tick invincibility countdown */
         bullets_update(frame);
 
-        if (bullets_hit(player->x, player->y)) {
-            hit = 1;
-            break;
-        }
 
+
+        /* c. Score ticks up just for surviving */
         if (frame % SCORE_INTERVAL == 0) {
             hud_update();
         }
 
+        /* d. Render */
         renderer_draw_frame(player);
 
         busy_wait();
         frame++;
     }
 
-    /* 4. Hand off to the game over component if killed by a bullet */
-    if (hit) {
+    /* 4. Show game over if health reached 0 */
+    if (player_is_dead(player)) {
         gameover_show();
     }
 
-    /* 5. Cleanup */
+    /* 5. Cleanup — kb_restore runs via atexit */
     screen_restore();
     return 0;
 }
