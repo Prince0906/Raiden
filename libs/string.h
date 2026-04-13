@@ -7,4 +7,4 @@ int  my_strcmp(const char *a, const char *b);
 void int_to_str(int n, char *buf, int buf_size);
 int  str_to_int(const char *s);
 
-#endif /* STRING_H */
+#endif 

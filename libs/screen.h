@@ -8,4 +8,4 @@ void screen_draw_str(int x, int y, const char *s);
 void screen_flip(void);
 void screen_restore(void);
 
-#endif /* LIB_SCREEN_H */
+#endif 

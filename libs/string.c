@@ -19,11 +19,6 @@ int my_strcmp(const char *a, const char *b) {
     return (unsigned char)a[i] - (unsigned char)b[i];
 }
 
-/*
- * int_to_str — converts integer n into its decimal string in buf.
- * buf_size includes the null terminator. Uses repeated division by 10
- * to extract digits (no <math.h>, no printf %d for game data).
- */
 void int_to_str(int n, char *buf, int buf_size) {
     if (buf_size <= 0) return;
 
@@ -34,7 +29,6 @@ void int_to_str(int n, char *buf, int buf_size) {
     int i = 0;
     char tmp[12];
 
-    /* Build digits in reverse order */
     while (val > 0 && i < 11) {
         tmp[i++] = (char)('0' + (val % 10));
         val /= 10;
@@ -43,17 +37,11 @@ void int_to_str(int n, char *buf, int buf_size) {
     int pos = 0;
     if (negative && pos < buf_size - 1) buf[pos++] = '-';
 
-    /* Reverse into buf */
     int j = i - 1;
     while (j >= 0 && pos < buf_size - 1) buf[pos++] = tmp[j--];
     buf[pos] = '\0';
 }
 
-/*
- * str_to_int — parses a decimal string into an int.
- * Stops at the first non-digit character. Used to parse getenv("COLUMNS").
- * Pure character arithmetic — no atoi, no strtol.
- */
 int str_to_int(const char *s) {
     int result = 0;
     int i = 0;

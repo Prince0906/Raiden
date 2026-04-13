@@ -3,10 +3,6 @@
 #include "math.h"
 #include "config.h"
 
-/*
- * LCG random number generator — no <stdlib.h> rand().
- * seed = seed * A + C (mod 2^32, wraps naturally with unsigned int)
- */
 static unsigned int rng_seed = 73819u;
 
 static unsigned int lcg_rand(void) {
@@ -19,10 +15,8 @@ static int rand_x(void) {
     return PLAY_X_MIN + (int)(lcg_rand() % (unsigned int)range);
 }
 
-/* ── Bullet pool ─────────────────────────────────────────────────────── */
 static Bullet bullets[MAX_BULLETS];
 
-/* ── bullets_init ────────────────────────────────────────────────────── */
 void bullets_init(void) {
     int i;
     for (i = 0; i < MAX_BULLETS; i++) {
@@ -33,7 +27,6 @@ void bullets_init(void) {
     }
 }
 
-/* ── spawn_bullet ────────────────────────────────────────────────────── */
 static void spawn_bullet(void) {
     int i;
     for (i = 0; i < MAX_BULLETS; i++) {
@@ -41,14 +34,13 @@ static void spawn_bullet(void) {
             bullets[i].x      = rand_x();
             bullets[i].y      = PLAY_Y_MIN;
             bullets[i].active = 1;
-            bullets[i].damage = BULLET_DMG_DEFAULT;  /* current single type */
+            bullets[i].damage = BULLET_DMG_DEFAULT;  
             return;
         }
     }
-    /* All slots full — skip this spawn cycle */
+
 }
 
-/* ── bullets_update ──────────────────────────────────────────────────── */
 void bullets_update(unsigned int frame) {
     int i;
 
@@ -68,7 +60,6 @@ void bullets_update(unsigned int frame) {
     }
 }
 
-/* ── bullets_draw ────────────────────────────────────────────────────── */
 void bullets_draw(void) {
     int i;
     for (i = 0; i < MAX_BULLETS; i++) {
@@ -78,21 +69,6 @@ void bullets_draw(void) {
     }
 }
 
-/* ── bullets_check_hit ───────────────────────────────────────────────── */
-/*
- * Checks all 4 plane cells against every active bullet.
- * If a hit is found the bullet is DEACTIVATED (consumed) so it cannot
- * deal damage across multiple frames while overlapping the plane.
- *
- * Returns: damage value of the bullet that hit (> 0 = hit occurred)
- *          0 = no hit this frame
- *
- * Plane occupies:
- *   (px,   py)     nose
- *   (px-1, py+1)   left wing
- *   (px,   py+1)   body
- *   (px+1, py+1)   right wing
- */
 int bullets_check_hit(int px, int py) {
     int i;
     for (i = 0; i < MAX_BULLETS; i++) {
@@ -104,7 +80,7 @@ int bullets_check_hit(int px, int py) {
             (bx == px   && by == py + 1) ||
             (bx == px+1 && by == py + 1)) {
             int dmg = bullets[i].damage;
-            bullets[i].active = 0;   /* consume the bullet */
+            bullets[i].active = 0;   
             return dmg;
         }
     }
