@@ -5,4 +5,4 @@ void  mem_init(void);
 void *my_alloc(int size);
 void  my_dealloc(void *ptr);
 
-#endif /* MEMORY_H */
+#endif 

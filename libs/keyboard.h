@@ -11,6 +11,6 @@ typedef enum {
 void kb_init(void);
 void kb_restore(void);
 Key  kb_get_key(void);
-Key  kb_drain_key(void);  /* drains entire buffer, returns last key pressed */
+Key  kb_drain_key(void);  
 
-#endif /* KEYBOARD_H */
+#endif 

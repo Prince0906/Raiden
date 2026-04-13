@@ -7,4 +7,4 @@ int my_max(int a, int b);
 int my_clamp(int x, int lo, int hi);
 int in_bounds(int x, int lo, int hi);
 
-#endif /* MATH_H */
+#endif 
