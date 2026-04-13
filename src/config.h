@@ -41,16 +41,21 @@
 #define HUD_SCORE_COL        2
 
 /* ── Timing ──────────────────────────────────────────────────────────── */
-#define BUSY_WAIT_ITERS     2000000
+#define BUSY_WAIT_ITERS      2000000
 
 /* ── Bullets ──────────────────────────────────────────────────────────── */
-#define MAX_BULLETS          5         /* max simultaneous bullets on screen */
-#define BULLET_SPEED_FRAMES  80        /* bullet drops 1 row every N frames  */
-#define BULLET_SPAWN_FRAMES  300       /* new bullet spawns every N frames   */
+#define MAX_BULLETS          5
+#define BULLET_SPEED_FRAMES  80
+#define BULLET_SPAWN_FRAMES  300
 #define BULLET_GLYPH         '*'
+#define BULLET_DMG_DEFAULT   20   /* damage dealt by the current bullet type */
+
+/* ── Player health ────────────────────────────────────────────────────── */
+#define PLAYER_MAX_HEALTH        100
+#define PLAYER_INVINCIBLE_FRAMES 300  /* frames of immunity after taking a hit */
 
 /* ── Scoring ─────────────────────────────────────────────────────────── */
-#define SCORE_INTERVAL       60        /* score +1 every N frames            */
+#define SCORE_INTERVAL       60
 
 /* ── Memory pool ─────────────────────────────────────────────────────── */
 #define POOL_SIZE_BYTES     (64 * 1024)
