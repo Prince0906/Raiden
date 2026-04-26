@@ -1,15 +1,19 @@
 #include "player.h"
 #include "memory.h"
+#include "math.h"    /* my_clamp — used in player_move */
 #include "screen.h"
 #include "config.h"
+#include "bullet.h"  /* bullet_spawn — used in player_shoot */
 
 /* ── player_init ─────────────────────────────────────────────────────── */
 Player *player_init(void) {
     Player *p = (Player *)my_alloc((int)sizeof(Player));
-    p->x          = PLAYER_START_X;
-    p->y          = PLAYER_START_Y;
-    p->health     = PLAYER_MAX_HEALTH;
-    p->invincible = 0;
+    p->x             = PLAYER_START_X;
+    p->y             = PLAYER_START_Y;
+    p->health        = PLAYER_MAX_HEALTH;
+    p->invincible    = 0;
+    p->weapon_level  = 0;
+    p->shoot_cooldown = 0;
     return p;
 }
 
@@ -33,11 +37,10 @@ void player_move(Player *p, KeyState ks) {
 }
 
 /* ── player_update ───────────────────────────────────────────────────── */
-/* Ticks the invincibility countdown by one frame. */
+/* Ticks invincibility and shoot-cooldown countdowns by one frame. */
 void player_update(Player *p) {
-    if (p->invincible > 0) {
-        p->invincible--;
-    }
+    if (p->invincible     > 0) p->invincible--;
+    if (p->shoot_cooldown > 0) p->shoot_cooldown--;
 }
 
 /* ── player_take_damage ──────────────────────────────────────────────── */
@@ -77,4 +80,42 @@ void player_draw(const Player *p) {
     screen_draw_char(p->x - 1, p->y + 1, '/');
     screen_draw_char(p->x,     p->y + 1, '|');
     screen_draw_char(p->x + 1, p->y + 1, '\\');
+}
+/* ── player_shoot ────────────────────────────────────────────────────── */
+/*
+ * Fires bullets upward (is_player=1) on SPACE press.
+ * shoot_cooldown prevents spam; pattern scales with weapon_level:
+ *   L0 single  : 1 bullet straight up, base damage
+ *   L1 boosted : 1 bullet straight up, +10 damage
+ *   L2 triple  : straight + left/right diagonal
+ *   L3 wide    : triple + outer diagonal pair
+ */
+void player_shoot(Player *p) {
+    int x, y;
+    if (p->shoot_cooldown > 0) return;
+
+    x = p->x;
+    y = p->y - 1;   /* one row above the nose */
+
+    switch (p->weapon_level) {
+        case 0:
+            bullet_spawn(x,     y,  0, -1, PLAYER_BULLET_DAMAGE,      1);
+            break;
+        case 1:
+            bullet_spawn(x,     y,  0, -1, PLAYER_BULLET_DAMAGE + 10, 1);
+            break;
+        case 2:
+            bullet_spawn(x,     y,  0, -1, PLAYER_BULLET_DAMAGE,      1);
+            bullet_spawn(x - 1, y, -1, -1, PLAYER_BULLET_DAMAGE,      1);
+            bullet_spawn(x + 1, y,  1, -1, PLAYER_BULLET_DAMAGE,      1);
+            break;
+        default: /* 3 */
+            bullet_spawn(x,     y,  0, -1, PLAYER_BULLET_DAMAGE,      1);
+            bullet_spawn(x - 1, y, -1, -1, PLAYER_BULLET_DAMAGE,      1);
+            bullet_spawn(x + 1, y,  1, -1, PLAYER_BULLET_DAMAGE,      1);
+            bullet_spawn(x - 2, y, -1, -1, PLAYER_BULLET_DAMAGE,      1);
+            bullet_spawn(x + 2, y,  1, -1, PLAYER_BULLET_DAMAGE,      1);
+            break;
+    }
+    p->shoot_cooldown = PLAYER_SHOOT_COOLDOWN;
 }
