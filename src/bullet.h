@@ -13,9 +13,20 @@ typedef struct {
     int y;
     int active;
     int damage;
+    int dx;    /* horizontal velocity: -1, 0, or +1 per move tick      */
+    int dy;    /* vertical velocity:   +1 down (enemy), -1 up (player) */
 } Bullet;
 
 void bullets_init(void);
+
+/*
+ * bullet_spawn — public API for firing bullets from any source.
+ *   x, y    : starting position (typically just below the shooter)
+ *   dx, dy  : velocity per move tick (+1/-1/0)
+ *   damage  : HP removed on player hit
+ * Returns 1 if a free slot was found, 0 if pool is full (spawn skipped).
+ */
+int  bullet_spawn(int x, int y, int dx, int dy, int damage);
 void bullets_update(unsigned int frame);
 void bullets_draw(void);
 
