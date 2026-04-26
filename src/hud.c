@@ -36,24 +36,18 @@ void hud_draw(int health) {
     screen_draw_str(HUD_SCORE_COL + 7, HUD_ROW, buf);
 
     /* ── Health bar ──
-     * "HP [==========] 100"
-     *  col 50: H
-     *  col 51: P
-     *  col 52: (space)
-     *  col 53: [
-     *  col 54-63: bar (10 cells)
-     *  col 64: ]
-     *  col 65: (space — left blank by screen_clear)
-     *  col 66-68: numeric hp value
+     * "HP [==========] 100"  is 19 chars total
+     * Place it right-aligned with some margin from the wall.
      */
+    int hp_start = SCREEN_W - 30;   /* auto-adjusts with screen width */
     filled = health / 10;   /* 0..10 */
 
-    screen_draw_str(50, HUD_ROW, "HP [");    /* cols 50-53 */
+    screen_draw_str(hp_start, HUD_ROW, "HP [");     /* cols hp_start..+3 */
     for (i = 0; i < 10; i++) {
-        screen_draw_char(54 + i, HUD_ROW, i < filled ? '=' : '-');
+        screen_draw_char(hp_start + 4 + i, HUD_ROW, i < filled ? '=' : '-');
     }
-    screen_draw_char(64, HUD_ROW, ']');
+    screen_draw_char(hp_start + 14, HUD_ROW, ']');
 
     int_to_str(health, buf, INT_BUF_SIZE);
-    screen_draw_str(66, HUD_ROW, buf);
+    screen_draw_str(hp_start + 16, HUD_ROW, buf);
 }

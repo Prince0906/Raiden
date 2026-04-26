@@ -7,6 +7,7 @@
 #include "screen.h"
 #include "player.h"
 #include "bullet.h"
+#include "enemy.h"
 #include "hud.h"
 #include "renderer.h"
 #include "gameover.h"
@@ -27,19 +28,21 @@ int main(void) {
     /* 2. Allocate game entities */
     Player *player = player_init();   /* health = 100, invincible = 0 */
     bullets_init();
+    enemies_init();
     hud_init();
 
     /* 3. Game loop: Input → Update → Render → Wait */
     unsigned int frame = 0;
 
     while (!player_is_dead(player)) {
-        Key k = kb_drain_key();
-        if (k == KEY_Q) break;
+        KeyState ks = kb_drain_keys();
+        if (ks & KS_QUIT) break;
 
         /* a. Update state */
-        player_move(player, k);
+        player_move(player, ks);
         player_update(player);       /* tick invincibility countdown */
         bullets_update(frame);
+        enemies_update(frame);       /* move enemies + fire bullets  */
 
         /* b. Collision — bullet hit? apply damage, don't die instantly */
         {
