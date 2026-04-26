@@ -20,47 +20,74 @@ static int rand_x(void) {
 }
 
 /* ── Bullet pool ─────────────────────────────────────────────────────── */
-static Bullet bullets[MAX_BULLETS];
+static Bullet bullets[MAX_ENEMY_BULLETS];
 
 /* ── bullets_init ────────────────────────────────────────────────────── */
 void bullets_init(void) {
     int i;
-    for (i = 0; i < MAX_BULLETS; i++) {
+    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
         bullets[i].active = 0;
         bullets[i].x      = 0;
         bullets[i].y      = 0;
         bullets[i].damage = 0;
+        bullets[i].dx     = 0;
+        bullets[i].dy     = 0;
     }
 }
 
-/* ── spawn_bullet ────────────────────────────────────────────────────── */
-static void spawn_bullet(void) {
+/* ── bullet_spawn ────────────────────────────────────────────────────── */
+/*
+ * Public API — used by enemies (and the future player) to fire bullets.
+ * Searches the pool for a free slot (first-fit). Returns 1 on success,
+ * 0 if the pool is full (caller can safely ignore the return value).
+ */
+int bullet_spawn(int x, int y, int dx, int dy, int damage) {
     int i;
-    for (i = 0; i < MAX_BULLETS; i++) {
+    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
         if (!bullets[i].active) {
-            bullets[i].x      = rand_x();
-            bullets[i].y      = PLAY_Y_MIN;
+            bullets[i].x      = x;
+            bullets[i].y      = y;
+            bullets[i].dx     = dx;
+            bullets[i].dy     = dy;
             bullets[i].active = 1;
-            bullets[i].damage = BULLET_DMG_DEFAULT;  /* current single type */
-            return;
+            bullets[i].damage = damage;
+            return 1;
         }
     }
-    /* All slots full — skip this spawn cycle */
+    return 0;  /* pool full — spawn skipped silently */
+}
+
+/* ── spawn_bullet ────────────────────────────────────────────────────── */
+/*
+ * Internal: fires a random hazard bullet at a random X on the top row.
+ * These are background environmental bullets — slow and individually weak.
+ * Delegates to bullet_spawn() so slot-finding logic lives in one place.
+ */
+static void spawn_bullet(void) {
+    bullet_spawn(rand_x(), PLAY_Y_MIN, 0, 1, BULLET_DMG_SLOW);
 }
 
 /* ── bullets_update ──────────────────────────────────────────────────── */
 void bullets_update(unsigned int frame) {
     int i;
 
-    if (frame > 0 && frame % BULLET_SPAWN_FRAMES == 0) {
+    if (BULLET_SPAWN_FRAMES > 0 && frame > 0 && frame % BULLET_SPAWN_FRAMES == 0) {
         spawn_bullet();
     }
 
     if (frame % BULLET_SPEED_FRAMES == 0) {
-        for (i = 0; i < MAX_BULLETS; i++) {
+        for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
             if (bullets[i].active) {
-                bullets[i].y++;
-                if (bullets[i].y > PLAY_Y_MAX) {
+                bullets[i].x += bullets[i].dx;
+                bullets[i].y += bullets[i].dy;
+
+                /*
+                 * Deactivate if bullet leaves the play area in any direction.
+                 * y < PLAY_Y_MIN handles future upward player bullets (V5).
+                 */
+                if (bullets[i].y > PLAY_Y_MAX ||
+                    bullets[i].y < PLAY_Y_MIN  ||
+                    !in_bounds(bullets[i].x, PLAY_X_MIN, PLAY_X_MAX)) {
                     bullets[i].active = 0;
                 }
             }
@@ -71,7 +98,7 @@ void bullets_update(unsigned int frame) {
 /* ── bullets_draw ────────────────────────────────────────────────────── */
 void bullets_draw(void) {
     int i;
-    for (i = 0; i < MAX_BULLETS; i++) {
+    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
         if (bullets[i].active) {
             screen_draw_char(bullets[i].x, bullets[i].y, BULLET_GLYPH);
         }
@@ -81,11 +108,11 @@ void bullets_draw(void) {
 /* ── bullets_check_hit ───────────────────────────────────────────────── */
 /*
  * Checks all 4 plane cells against every active bullet.
- * If a hit is found the bullet is DEACTIVATED (consumed) so it cannot
- * deal damage across multiple frames while overlapping the plane.
+ * EVERY overlapping bullet is consumed (deactivated) and its damage is
+ * accumulated. This prevents "phantom" bullets that visually sit on top
+ * of the player but don't register because only one was checked per frame.
  *
- * Returns: damage value of the bullet that hit (> 0 = hit occurred)
- *          0 = no hit this frame
+ * Returns: total damage from all bullets that hit this frame (>= 0)
  *
  * Plane occupies:
  *   (px,   py)     nose
@@ -94,8 +121,9 @@ void bullets_draw(void) {
  *   (px+1, py+1)   right wing
  */
 int bullets_check_hit(int px, int py) {
+    int total_dmg = 0;
     int i;
-    for (i = 0; i < MAX_BULLETS; i++) {
+    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
         if (!bullets[i].active) continue;
         int bx = bullets[i].x;
         int by = bullets[i].y;
@@ -103,10 +131,9 @@ int bullets_check_hit(int px, int py) {
             (bx == px-1 && by == py + 1) ||
             (bx == px   && by == py + 1) ||
             (bx == px+1 && by == py + 1)) {
-            int dmg = bullets[i].damage;
+            total_dmg += bullets[i].damage;
             bullets[i].active = 0;   /* consume the bullet */
-            return dmg;
         }
     }
-    return 0;
+    return total_dmg;
 }
