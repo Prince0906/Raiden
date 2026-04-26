@@ -33,6 +33,7 @@ void bullets_init(void) {
         bullets[i].dx         = 0;
         bullets[i].dy         = 0;
         bullets[i].move_timer = 0;
+        bullets[i].is_player  = 0;
     }
 }
 
@@ -42,7 +43,7 @@ void bullets_init(void) {
  * Searches the pool for a free slot (first-fit). Returns 1 on success,
  * 0 if the pool is full (caller can safely ignore the return value).
  */
-int bullet_spawn(int x, int y, int dx, int dy, int damage) {
+int bullet_spawn(int x, int y, int dx, int dy, int damage, int is_player) {
     int i;
     for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
         if (!bullets[i].active) {
@@ -52,7 +53,8 @@ int bullet_spawn(int x, int y, int dx, int dy, int damage) {
             bullets[i].dy         = dy;
             bullets[i].active     = 1;
             bullets[i].damage     = damage;
-            bullets[i].move_timer = BULLET_SPEED_FRAMES; /* own countdown */
+            bullets[i].move_timer = BULLET_SPEED_FRAMES;
+            bullets[i].is_player  = is_player;
             return 1;
         }
     }
@@ -66,7 +68,7 @@ int bullet_spawn(int x, int y, int dx, int dy, int damage) {
  * Delegates to bullet_spawn() so slot-finding logic lives in one place.
  */
 static void spawn_bullet(void) {
-    bullet_spawn(rand_x(), PLAY_Y_MIN, 0, 1, BULLET_DMG_SLOW);
+    bullet_spawn(rand_x(), PLAY_Y_MIN, 0, 1, BULLET_DMG_SLOW, 0);
 }
 
 /* ── bullets_update ──────────────────────────────────────────────────── */
@@ -112,31 +114,23 @@ void bullets_draw(void) {
     int i;
     for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
         if (bullets[i].active) {
-            screen_draw_char(bullets[i].x, bullets[i].y, BULLET_GLYPH);
+            char g = bullets[i].is_player ? PLAYER_BULLET_GLYPH : BULLET_GLYPH;
+            screen_draw_char(bullets[i].x, bullets[i].y, g);
         }
     }
 }
 
-/* ── bullets_check_hit ───────────────────────────────────────────────── */
+/* ── bullets_check_hit ────────────────────────────────────────────────── */
 /*
- * Checks all 4 plane cells against every active bullet.
- * EVERY overlapping bullet is consumed (deactivated) and its damage is
- * accumulated. This prevents "phantom" bullets that visually sit on top
- * of the player but don't register because only one was checked per frame.
- *
- * Returns: total damage from all bullets that hit this frame (>= 0)
- *
- * Plane occupies:
- *   (px,   py)     nose
- *   (px-1, py+1)   left wing
- *   (px,   py+1)   body
- *   (px+1, py+1)   right wing
+ * Checks all 4 player hitbox cells against every ENEMY bullet (is_player==0).
+ * Player bullets are intentionally skipped here — they are handled by
+ * bullets_consume_player_hits() which enemy.c calls for each active enemy.
  */
 int bullets_check_hit(int px, int py) {
     int total_dmg = 0;
     int i;
     for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
-        if (!bullets[i].active) continue;
+        if (!bullets[i].active || bullets[i].is_player) continue;
         int bx = bullets[i].x;
         int by = bullets[i].y;
         if ((bx == px   && by == py    ) ||
@@ -144,7 +138,27 @@ int bullets_check_hit(int px, int py) {
             (bx == px   && by == py + 1) ||
             (bx == px+1 && by == py + 1)) {
             total_dmg += bullets[i].damage;
-            bullets[i].active = 0;   /* consume the bullet */
+            bullets[i].active = 0;
+        }
+    }
+    return total_dmg;
+}
+
+/* ── bullets_consume_player_hits ───────────────────────────────────────── */
+/*
+ * Called by enemy.c for each active enemy at position (ex, ey).
+ * Searches player bullets (is_player==1) for any at that cell.
+ * Consumed bullets are deactivated; accumulated damage is returned.
+ * One bullet can only damage one enemy (first-hit model).
+ */
+int bullets_consume_player_hits(int ex, int ey) {
+    int i, total_dmg = 0;
+    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
+        if (!bullets[i].active || !bullets[i].is_player) continue;
+        if (bullets[i].x == ex && 
+           (bullets[i].y == ey || bullets[i].y == ey - 1 || bullets[i].y == ey + 1)) {
+            total_dmg += bullets[i].damage;
+            bullets[i].active = 0;
         }
     }
     return total_dmg;
