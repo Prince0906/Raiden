@@ -52,7 +52,7 @@ void renderer_draw_frame(const Player *p) {
     enemies_draw();        /* layer 2: enemy planes            */
     bullets_draw();        /* layer 3: all bullets (enemy fire)*/
     player_draw(p);        /* layer 4: player plane (on top)  */
-    hud_draw(p->health);   /* layer 5: score + HP bar          */
+    hud_draw(p->health, p->weapon_level);   /* layer 5: score + WPN + HP bar */
 
     screen_flip();
 }

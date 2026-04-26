@@ -33,9 +33,10 @@ void screen_init(void) {
     int i;
     for (i = 0; i < BUF_SIZE; i++) { front[i] = ' '; back[i] = ' '; }
 
-    printf("\033[?25l");   /* hide cursor                   */
-    printf("\033[2J");     /* erase entire screen            */
-    printf("\033[H");      /* cursor to top-left             */
+    printf("\033[?1049h"); /* switch to alternate screen buffer (clean slate) */
+    printf("\033[?25l");   /* hide cursor                                      */
+    printf("\033[2J");     /* erase entire alternate screen                    */
+    printf("\033[H");      /* cursor to top-left                               */
     fflush(stdout);
 }
 
@@ -84,7 +85,8 @@ void screen_flip(void) {
 
 /* ── screen_restore ──────────────────────────────────────────────────── */
 void screen_restore(void) {
-    printf("\033[%d;1H", SCREEN_H + 1);   /* cursor below game area */
-    printf("\033[?25h");                   /* show cursor            */
+    printf("\033[?25h");   /* show cursor                                      */
+    printf("\033[?1049l"); /* restore original screen buffer (game disappears) */
     fflush(stdout);
 }
+

@@ -34,30 +34,35 @@ int main(void) {
         KeyState ks = kb_drain_keys();
         if (ks & KS_QUIT) break;
 
-        /* a. Update state */
-        player_move(player, ks);
-        player_update(player);       /* tick invincibility countdown */
-        bullets_update(frame);
-        enemies_update(frame);       /* move enemies + fire bullets  */
+        /* a. Input — shoot on SPACE */
+        if (ks & KS_SPACE) player_shoot(player);
 
-        /* b. Collision — bullets AND enemy body contact both deal damage */
+        /* b. Update state */
+        player_move(player, ks);
+        player_update(player);       /* tick invincibility + shoot cooldown */
+        bullets_update(frame);
+        enemies_update(frame);       /* move enemies + fire enemy bullets   */
+
+        /* c. Player bullets hit enemies → damage / kills → score */
+        {
+            int kill_score = enemies_process_player_bullets();
+            if (kill_score > 0) hud_add_score(kill_score);
+        }
+
+        /* d. Collision — enemy bullets AND body contact damage player */
         {
             int dmg = bullets_check_hit(player->x, player->y);
             dmg    += enemies_check_hit(player->x, player->y);
-            if (dmg > 0) {
-                player_take_damage(player, dmg);
-            }
+            if (dmg > 0) player_take_damage(player, dmg);
         }
 
-        /* c. Score ticks up just for surviving */
-        if (frame % SCORE_INTERVAL == 0) {
-            hud_update();
-        }
+        /* e. Survival score tick */
+        if (frame % SCORE_INTERVAL == 0) hud_update();
 
-        /* d. Render */
+        /* f. Render */
         renderer_draw_frame(player);
 
-        usleep(FRAME_US);   /* sleep for exactly 1 frame (50 ms at 20 FPS) */
+        usleep(FRAME_US);
         frame++;
     }
 

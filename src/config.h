@@ -54,12 +54,18 @@
 #define FRAME_US             (1000000 / TARGET_FPS)   /* ~33 333 µs per frame = 30 FPS */
 
 /* ── Bullets ──────────────────────────────────────────────────────────── */
-#define MAX_ENEMY_BULLETS    20   /* pool shared by all enemy/hazard bullets */
-#define BULLET_SPEED_FRAMES  2    /* 20 FPS: 100 ms/cell, ~2.5 s to cross screen */
-#define BULLET_SPAWN_FRAMES  0     /* 0 = disabled — all bullets from enemies */
-#define BULLET_GLYPH         '*'
-#define BULLET_DMG_SLOW      10   /* NOOB bullets — moderate damage          */
-#define BULLET_DMG_FAST      25   /* MID spread bullets — punishing          */
+#define MAX_ENEMY_BULLETS    30   /* shared pool: enemy + player bullets      */
+#define BULLET_SPEED_FRAMES  2    /* 30 FPS: 100 ms/cell, ~2.5 s to cross    */
+#define BULLET_SPAWN_FRAMES  0    /* 0 = disabled — all bullets from enemies  */
+#define BULLET_GLYPH         '*'  /* enemy bullet glyph                       */
+#define PLAYER_BULLET_GLYPH  '|'  /* player bullet glyph                      */
+#define BULLET_DMG_SLOW      10   /* NOOB bullets — moderate damage            */
+#define BULLET_DMG_FAST      25   /* MID spread bullets — punishing            */
+
+/* ── Player shooting (V5) ────────────────────────────────────────────── */
+#define PLAYER_BULLET_DAMAGE   20  /* base HP removed per player bullet       */
+#define PLAYER_SHOOT_COOLDOWN   6  /* 30 FPS: 200 ms between shots            */
+#define MAX_WEAPON_LEVEL        3  /* 0=single 1=boosted 2=triple 3=wide      */
 
 /* ── Enemies ─────────────────────────────────────────────────────────── */
 #define MAX_ENEMIES              6
