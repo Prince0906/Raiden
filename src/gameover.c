@@ -4,11 +4,11 @@
 #include "string.h"   /* int_to_str — our custom string.h */
 #include "hud.h"
 #include "config.h"
+#include <unistd.h>   /* usleep */
 
-/* Forward-declare busy_wait equivalent — we only need a small spin here. */
+/* Poll interval while waiting on the game-over screen for Q press. */
 static void go_wait(void) {
-    volatile int i;
-    for (i = 0; i < BUSY_WAIT_ITERS; i++) {}
+    usleep(FRAME_US);
 }
 
 /* ── gameover_show ───────────────────────────────────────────────────── */

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>   /* usleep — POSIX timing; same exception class as termios */
 
 #include "config.h"
 #include "memory.h"
@@ -12,11 +13,6 @@
 #include "renderer.h"
 #include "gameover.h"
 
-/* ── busy_wait ───────────────────────────────────────────────────────── */
-static void busy_wait(void) {
-    volatile int i;
-    for (i = 0; i < BUSY_WAIT_ITERS; i++) { /* spin */ }
-}
 
 /* ── main ────────────────────────────────────────────────────────────── */
 int main(void) {
@@ -44,9 +40,10 @@ int main(void) {
         bullets_update(frame);
         enemies_update(frame);       /* move enemies + fire bullets  */
 
-        /* b. Collision — bullet hit? apply damage, don't die instantly */
+        /* b. Collision — bullets AND enemy body contact both deal damage */
         {
             int dmg = bullets_check_hit(player->x, player->y);
+            dmg    += enemies_check_hit(player->x, player->y);
             if (dmg > 0) {
                 player_take_damage(player, dmg);
             }
@@ -60,7 +57,7 @@ int main(void) {
         /* d. Render */
         renderer_draw_frame(player);
 
-        busy_wait();
+        usleep(FRAME_US);   /* sleep for exactly 1 frame (50 ms at 20 FPS) */
         frame++;
     }
 

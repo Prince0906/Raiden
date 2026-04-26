@@ -43,11 +43,19 @@
 #define HUD_SCORE_COL        2
 
 /* ── Timing ──────────────────────────────────────────────────────────── */
-#define BUSY_WAIT_ITERS      2000000
+/*
+ * busy_wait was replaced by usleep(FRAME_US) in main.c.
+ * BUSY_WAIT_ITERS was a spin-loop whose duration was fully CPU-dependent
+ * (e.g. ~2 ms on an M2, ~10 ms on slower hardware) — not 50 ms as intended.
+ * All frame-count constants below are calibrated for TARGET_FPS = 20,
+ * i.e. one frame = FRAME_US = 50 000 µs = 50 ms.
+ */
+#define TARGET_FPS           30
+#define FRAME_US             (1000000 / TARGET_FPS)   /* ~33 333 µs per frame = 30 FPS */
 
 /* ── Bullets ──────────────────────────────────────────────────────────── */
 #define MAX_ENEMY_BULLETS    20   /* pool shared by all enemy/hazard bullets */
-#define BULLET_SPEED_FRAMES  40    /* frames between bullet move ticks     */
+#define BULLET_SPEED_FRAMES  2    /* 20 FPS: 100 ms/cell, ~2.5 s to cross screen */
 #define BULLET_SPAWN_FRAMES  0     /* 0 = disabled — all bullets from enemies */
 #define BULLET_GLYPH         '*'
 #define BULLET_DMG_SLOW      10   /* NOOB bullets — moderate damage          */
@@ -57,20 +65,21 @@
 #define MAX_ENEMIES              6
 #define ENEMY_NOOB_HEALTH        20
 #define ENEMY_MID_HEALTH         50
-#define ENEMY_MOVE_FRAMES        60    /* frames between enemy moving 1 row    */
-#define ENEMY_SPAWN_INTERVAL     300   /* frames between new enemy spawns      */
-#define ENEMY_NOOB_SHOOT_TIMER   100   /* frames between NOOB shots            */
-#define ENEMY_MID_SHOOT_TIMER    180   /* frames between MID spread shots      */
+#define ENEMY_MOVE_FRAMES        4    /* 20 FPS: 200 ms/row, exits screen in ~5 s   */
+#define ENEMY_SPAWN_INTERVAL     60   /* 20 FPS: new enemy every 3 seconds           */
+#define ENEMY_NOOB_SHOOT_TIMER   15   /* 20 FPS: single shot every 0.75 s            */
+#define ENEMY_MID_SHOOT_TIMER    25   /* 20 FPS: spread salvo every 1.25 s           */
 #define ENEMY_NOOB_GLYPH         'V'
 #define ENEMY_MID_GLYPH          'W'
 #define ENEMY_SCORE_VALUE        100
+#define ENEMY_COLLISION_DAMAGE   25   /* HP lost when player body overlaps enemy     */
 
 /* ── Player health ────────────────────────────────────────────────────── */
 #define PLAYER_MAX_HEALTH        100
-#define PLAYER_INVINCIBLE_FRAMES 100  /* frames of immunity after taking a hit */
+#define PLAYER_INVINCIBLE_FRAMES 30   /* 30 FPS: 1 second of post-hit immunity, flashes visibly */
 
 /* ── Scoring ─────────────────────────────────────────────────────────── */
-#define SCORE_INTERVAL       60
+#define SCORE_INTERVAL       20   /* 20 FPS: score increments once per second */
 
 /* ── Memory pool ─────────────────────────────────────────────────────── */
 #define POOL_SIZE_BYTES     (64 * 1024)

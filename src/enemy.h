@@ -24,11 +24,19 @@ typedef struct {
     int       active;
     int       health;
     int       shoot_timer;
+    int       move_timer;  /* per-enemy countdown: when 0, advance y by 1   */
     EnemyType type;
 } Enemy;
 
 void enemies_init(void);
 void enemies_update(unsigned int frame);
 void enemies_draw(void);
+
+/*
+ * enemies_check_hit — checks if any active enemy overlaps the player plane.
+ * On collision the enemy is deactivated (both planes crash) and
+ * ENEMY_COLLISION_DAMAGE is returned. Returns 0 if no overlap this frame.
+ */
+int  enemies_check_hit(int px, int py);
 
 #endif /* ENEMY_H */

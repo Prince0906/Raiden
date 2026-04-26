@@ -1,6 +1,5 @@
 #include "player.h"
 #include "memory.h"
-#include "math.h"
 #include "screen.h"
 #include "config.h"
 
@@ -61,20 +60,18 @@ int player_is_dead(const Player *p) {
     return p->health <= 0;
 }
 
-/* ── player_draw ─────────────────────────────────────────────────────── */
-/*
- * Plane shape:
- *     ^         row y     (nose)
- *    /|\         row y+1  (wings + body)
- *
- * Invincibility flash: when immune, the plane alternates visible/invisible
- * every 20 frames so the player knows they have a window of safety.
- *   (p->invincible % 40) < 20  → skip draw (invisible for 20 frames)
- *   (p->invincible % 40) >= 20 → draw normally (visible for 20 frames)
- */
 void player_draw(const Player *p) {
-    /* Flash blink: skip drawing on one half of each 40-frame cycle */
-    if (p->invincible > 0 && (p->invincible % 40) < 20) return;
+    /*
+     * Invincibility flash — rapid 6-frame cycle:
+     *   invincible % 6 < 3  → draw   (visible  for 3 frames)
+     *   invincible % 6 >= 3 → return (invisible for 3 frames)
+     *
+     * This replaces the old `% 40 < 20` logic which counted DOWN from
+     * PLAYER_INVINCIBLE_FRAMES=40, making the plane invisible for the
+     * entire last half of the window (values 19→1 all < 20 → skip).
+     * The short 6-frame cycle flashes clearly throughout the full window.
+     */
+    if (p->invincible > 0 && (p->invincible % 6) >= 3) return;
 
     screen_draw_char(p->x,     p->y,     '^');
     screen_draw_char(p->x - 1, p->y + 1, '/');
