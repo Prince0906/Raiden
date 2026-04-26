@@ -39,4 +39,10 @@ void enemies_draw(void);
  */
 int  enemies_check_hit(int px, int py);
 
+/*
+ * enemies_process_player_bullets — call once per frame after bullets_update.
+ * Returns score earned from kills this frame.
+ */
+int  enemies_process_player_bullets(void);
+
 #endif /* ENEMY_H */

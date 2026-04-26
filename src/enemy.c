@@ -15,8 +15,11 @@ static unsigned int enemy_lcg(void) {
 }
 
 static int enemy_rand_x(void) {
-    int range = PLAY_X_MAX - PLAY_X_MIN + 1;
-    return PLAY_X_MIN + (int)(enemy_lcg() % (unsigned int)range);
+    /* MIDs are 5 cells wide (center +/- 2), so margin is 2 to stay in bounds */
+    int min_x = PLAY_X_MIN + 2;
+    int max_x = PLAY_X_MAX - 2;
+    int range = max_x - min_x + 1;
+    return min_x + (int)(enemy_lcg() % (unsigned int)range);
 }
 
 /* ── Enemy pool ──────────────────────────────────────────────────────── */
@@ -115,7 +118,7 @@ void enemies_update(unsigned int frame) {
                  * dx=0 keeps it vertical; damage=BULLET_DMG_SLOW.
                  */
                 bullet_spawn(enemies[i].x, enemies[i].y + 1,
-                             0, 1, BULLET_DMG_SLOW);
+                             0, 1, BULLET_DMG_SLOW, 0);
                 enemies[i].shoot_timer = ENEMY_NOOB_SHOOT_TIMER;
 
             } else {
@@ -132,7 +135,7 @@ void enemies_update(unsigned int frame) {
                 for (s = 0; s < 3; s++) {
                     bullet_spawn(enemies[i].x + spreads[s],
                                  enemies[i].y + 1,
-                                 spreads[s], 1, BULLET_DMG_FAST);
+                                 spreads[s], 1, BULLET_DMG_FAST, 0);
                 }
                 enemies[i].shoot_timer = ENEMY_MID_SHOOT_TIMER;
             }
@@ -142,17 +145,25 @@ void enemies_update(unsigned int frame) {
 
 /* ── enemies_draw ────────────────────────────────────────────────────── */
 /*
- * NOOB drawn as 'V' — narrow, single shooter.
- * MID  drawn as 'W' — wide glyph matching its wide spread pattern.
+ * NOOB drawn as '/V\'   (3 cells wide)
+ * MID  drawn as '/-W-\' (5 cells wide)
  */
 void enemies_draw(void) {
     int i;
     for (i = 0; i < MAX_ENEMIES; i++) {
         if (!enemies[i].active) continue;
-        char glyph = (enemies[i].type == ENEMY_NOOB)
-                     ? ENEMY_NOOB_GLYPH
-                     : ENEMY_MID_GLYPH;
-        screen_draw_char(enemies[i].x, enemies[i].y, glyph);
+        
+        if (enemies[i].type == ENEMY_NOOB) {
+            screen_draw_char(enemies[i].x - 1, enemies[i].y, '/');
+            screen_draw_char(enemies[i].x,     enemies[i].y, ENEMY_NOOB_GLYPH);
+            screen_draw_char(enemies[i].x + 1, enemies[i].y, '\\');
+        } else {
+            screen_draw_char(enemies[i].x - 2, enemies[i].y, '/');
+            screen_draw_char(enemies[i].x - 1, enemies[i].y, '-');
+            screen_draw_char(enemies[i].x,     enemies[i].y, ENEMY_MID_GLYPH);
+            screen_draw_char(enemies[i].x + 1, enemies[i].y, '-');
+            screen_draw_char(enemies[i].x + 2, enemies[i].y, '\\');
+        }
     }
 }
 
@@ -166,10 +177,9 @@ void enemies_draw(void) {
  *   (px,   py+1)    body
  *   (px+1, py+1)    right wing
  *
- * An enemy occupies a single cell (its x, y position).
+ * NOOB occupies 3 cells (x-1 to x+1). MID occupies 5 cells (x-2 to x+2).
  * On overlap: the enemy is deactivated (crash) and ENEMY_COLLISION_DAMAGE
- * is returned. The caller's invincibility window prevents repeated damage
- * across consecutive frames while the player steers away.
+ * is returned.
  *
  * Returns: ENEMY_COLLISION_DAMAGE if a collision occurred, else 0.
  */
@@ -177,15 +187,57 @@ int enemies_check_hit(int px, int py) {
     int i;
     for (i = 0; i < MAX_ENEMIES; i++) {
         if (!enemies[i].active) continue;
-        int ex = enemies[i].x;
+        
+        int w = (enemies[i].type == ENEMY_NOOB) ? 1 : 2;
         int ey = enemies[i].y;
-        if ((ex == px   && ey == py    ) ||
-            (ex == px-1 && ey == py + 1) ||
-            (ex == px   && ey == py + 1) ||
-            (ex == px+1 && ey == py + 1)) {
-            enemies[i].active = 0;   /* both planes crash */
-            return ENEMY_COLLISION_DAMAGE;
+        int dx;
+        
+        for (dx = -w; dx <= w; dx++) {
+            int ex = enemies[i].x + dx;
+            if ((ex == px   && ey == py    ) ||
+                (ex == px-1 && ey == py + 1) ||
+                (ex == px   && ey == py + 1) ||
+                (ex == px+1 && ey == py + 1)) {
+                
+                enemies[i].active = 0;   /* both planes crash */
+                return ENEMY_COLLISION_DAMAGE;
+            }
         }
     }
     return 0;
+}
+
+/* ── enemies_process_player_bullets ─────────────────────────────────── */
+/*
+ * Called once per frame from main.c AFTER bullets_update.
+ * For each active enemy, asks bullet.c if any player bullet (is_player==1)
+ * overlaps its position (accounting for wider plane bodies). On hit:
+ *   • bullet deactivated (inside bullets_consume_player_hits)
+ *   • enemy health reduced
+ *   • if health ≤ 0: enemy deactivated, ENEMY_SCORE_VALUE added to return
+ *
+ * Returns total score earned from kills this frame.
+ */
+int enemies_process_player_bullets(void) {
+    int i, total_score = 0;
+    for (i = 0; i < MAX_ENEMIES; i++) {
+        if (!enemies[i].active) continue;
+        
+        int w = (enemies[i].type == ENEMY_NOOB) ? 1 : 2;
+        int dx;
+        int dmg = 0;
+        
+        for (dx = -w; dx <= w; dx++) {
+            dmg += bullets_consume_player_hits(enemies[i].x + dx, enemies[i].y);
+        }
+        
+        if (dmg > 0) {
+            enemies[i].health -= dmg;
+            if (enemies[i].health <= 0) {
+                enemies[i].active  = 0;
+                total_score       += ENEMY_SCORE_VALUE;
+            }
+        }
+    }
+    return total_score;
 }
