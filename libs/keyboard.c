@@ -85,14 +85,8 @@ Key kb_get_key(void) {
 
 /* ── kb_drain_key ────────────────────────────────────────────────────── */
 /*
- * When a key is held down the OS key-repeat mechanism floods stdin with
- * repeated copies of that keycode. If the game loop only reads ONE byte
- * per frame, the buffer backs up — switching directions feels "laggy"
- * because the old repeated keys must drain before the new key is seen.
- *
- * Fix: read EVERY pending byte this frame in a tight loop and discard
- * all but the LAST one. With VMIN=0 / VTIME=0 the inner kb_get_key()
- * always returns immediately, so this loop is fully non-blocking.
+ * Legacy single-key drain — still used by gameover.c's blocking input.
+ * Reads every pending byte, keeps only the last.
  */
 Key kb_drain_key(void) {
     Key last = KEY_NONE;
@@ -101,4 +95,35 @@ Key kb_drain_key(void) {
         last = k;
     }
     return last;
+}
+
+/* ── kb_drain_keys ───────────────────────────────────────────────────── */
+/*
+ * V4 bitmask drain — reads ALL pending bytes and ORs each recognised key
+ * into a KeyState bitmask. Multiple directions can be set simultaneously,
+ * enabling diagonal movement.
+ *
+ * Why this works for "held" keys:
+ *   When you hold W+D, the OS key-repeat sends alternating w,d,w,d chars
+ *   into stdin. This loop reads all of them → both KS_UP and KS_RIGHT
+ *   are set in the returned bitmask.
+ *
+ * Contradictory inputs (UP + DOWN) naturally cancel in player_move()
+ * because the player position gets +speed then -speed on the same axis.
+ */
+KeyState kb_drain_keys(void) {
+    KeyState state = 0;
+    Key k;
+    while ((k = kb_get_key()) != KEY_NONE) {
+        switch (k) {
+            case KEY_W: case KEY_UP:    state |= KS_UP;    break;
+            case KEY_S: case KEY_DOWN:  state |= KS_DOWN;  break;
+            case KEY_A: case KEY_LEFT:  state |= KS_LEFT;  break;
+            case KEY_D: case KEY_RIGHT: state |= KS_RIGHT; break;
+            case KEY_SPACE:             state |= KS_SPACE;  break;
+            case KEY_Q:                 state |= KS_QUIT;   break;
+            default: break;
+        }
+    }
+    return state;
 }
