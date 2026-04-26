@@ -15,14 +15,20 @@ Player *player_init(void) {
 }
 
 /* ── player_move ─────────────────────────────────────────────────────── */
-void player_move(Player *p, Key k) {
-    switch (k) {
-        case KEY_W: case KEY_UP:    p->y--; break;
-        case KEY_S: case KEY_DOWN:  p->y++; break;
-        case KEY_A: case KEY_LEFT:  p->x--; break;
-        case KEY_D: case KEY_RIGHT: p->x++; break;
-        default: break;
-    }
+/*
+ * Checks each direction bit independently — multiple can be set at once,
+ * enabling true diagonal movement (e.g. KS_UP | KS_RIGHT = up-right).
+ *
+ * PLAYER_SPEED_X / _Y are separate because terminal cells are ~2× taller
+ * than wide. Without this split, vertical movement looks faster than
+ * horizontal even though both move the same number of cells per frame.
+ */
+void player_move(Player *p, KeyState ks) {
+    if (ks & KS_UP)    p->y -= PLAYER_SPEED_Y;
+    if (ks & KS_DOWN)  p->y += PLAYER_SPEED_Y;
+    if (ks & KS_LEFT)  p->x -= PLAYER_SPEED_X;
+    if (ks & KS_RIGHT) p->x += PLAYER_SPEED_X;
+
     p->x = my_clamp(p->x, PLAY_X_MIN + PLANE_HALF_W, PLAY_X_MAX - PLANE_HALF_W);
     p->y = my_clamp(p->y, PLAY_Y_MIN, PLAY_Y_MAX - PLANE_HEIGHT + 1);
 }

@@ -18,7 +18,7 @@ typedef struct {
 } Player;
 
 Player *player_init(void);
-void    player_move(Player *p, Key k);
+void    player_move(Player *p, KeyState ks);  /* bitmask: supports diagonal */
 void    player_update(Player *p);           /* tick invincibility timer      */
 void    player_take_damage(Player *p, int dmg); /* apply dmg if not immune   */
 int     player_is_dead(const Player *p);    /* returns 1 when health <= 0    */
