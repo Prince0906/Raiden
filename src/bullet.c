@@ -26,12 +26,13 @@ static Bullet bullets[MAX_ENEMY_BULLETS];
 void bullets_init(void) {
     int i;
     for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
-        bullets[i].active = 0;
-        bullets[i].x      = 0;
-        bullets[i].y      = 0;
-        bullets[i].damage = 0;
-        bullets[i].dx     = 0;
-        bullets[i].dy     = 0;
+        bullets[i].active     = 0;
+        bullets[i].x          = 0;
+        bullets[i].y          = 0;
+        bullets[i].damage     = 0;
+        bullets[i].dx         = 0;
+        bullets[i].dy         = 0;
+        bullets[i].move_timer = 0;
     }
 }
 
@@ -45,12 +46,13 @@ int bullet_spawn(int x, int y, int dx, int dy, int damage) {
     int i;
     for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
         if (!bullets[i].active) {
-            bullets[i].x      = x;
-            bullets[i].y      = y;
-            bullets[i].dx     = dx;
-            bullets[i].dy     = dy;
-            bullets[i].active = 1;
-            bullets[i].damage = damage;
+            bullets[i].x          = x;
+            bullets[i].y          = y;
+            bullets[i].dx         = dx;
+            bullets[i].dy         = dy;
+            bullets[i].active     = 1;
+            bullets[i].damage     = damage;
+            bullets[i].move_timer = BULLET_SPEED_FRAMES; /* own countdown */
             return 1;
         }
     }
@@ -71,25 +73,35 @@ static void spawn_bullet(void) {
 void bullets_update(unsigned int frame) {
     int i;
 
+    /* Optional environmental bullet spawner (currently disabled). */
     if (BULLET_SPAWN_FRAMES > 0 && frame > 0 && frame % BULLET_SPAWN_FRAMES == 0) {
         spawn_bullet();
     }
 
-    if (frame % BULLET_SPEED_FRAMES == 0) {
-        for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
-            if (bullets[i].active) {
-                bullets[i].x += bullets[i].dx;
-                bullets[i].y += bullets[i].dy;
+    /*
+     * Per-bullet move timer — each bullet tracks its own countdown so
+     * bullets fire uniformly regardless of what frame they were spawned on.
+     * Previously a global `frame % BULLET_SPEED_FRAMES` tick was used,
+     * which made bullets spawned mid-interval wait different amounts before
+     * their first move — causing visibly unequal bullet speeds.
+     */
+    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
+        if (!bullets[i].active) continue;
 
-                /*
-                 * Deactivate if bullet leaves the play area in any direction.
-                 * y < PLAY_Y_MIN handles future upward player bullets (V5).
-                 */
-                if (bullets[i].y > PLAY_Y_MAX ||
-                    bullets[i].y < PLAY_Y_MIN  ||
-                    !in_bounds(bullets[i].x, PLAY_X_MIN, PLAY_X_MAX)) {
-                    bullets[i].active = 0;
-                }
+        bullets[i].move_timer--;
+        if (bullets[i].move_timer <= 0) {
+            bullets[i].x += bullets[i].dx;
+            bullets[i].y += bullets[i].dy;
+            bullets[i].move_timer = BULLET_SPEED_FRAMES; /* reset for next tick */
+
+            /*
+             * Deactivate if bullet leaves the play area in any direction.
+             * y < PLAY_Y_MIN handles future upward player bullets (V5).
+             */
+            if (bullets[i].y > PLAY_Y_MAX ||
+                bullets[i].y < PLAY_Y_MIN  ||
+                !in_bounds(bullets[i].x, PLAY_X_MIN, PLAY_X_MAX)) {
+                bullets[i].active = 0;
             }
         }
     }

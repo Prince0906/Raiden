@@ -13,8 +13,9 @@ typedef struct {
     int y;
     int active;
     int damage;
-    int dx;    /* horizontal velocity: -1, 0, or +1 per move tick      */
-    int dy;    /* vertical velocity:   +1 down (enemy), -1 up (player) */
+    int dx;         /* horizontal velocity: -1, 0, or +1 per move tick      */
+    int dy;         /* vertical velocity:   +1 down (enemy), -1 up (player) */
+    int move_timer; /* per-bullet countdown: when 0, advance by (dx,dy)     */
 } Bullet;
 
 void bullets_init(void);
