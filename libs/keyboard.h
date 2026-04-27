@@ -1,12 +1,21 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-typedef enum {
-    KEY_NONE = 0,
-    KEY_W, KEY_A, KEY_S, KEY_D,
-    KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT,
-    KEY_SPACE, KEY_Q
-} Key;
+typedef int Key;
+
+#define KEY_NONE 0
+#define KEY_W (-1)
+#define KEY_A (-2)
+#define KEY_S (-3)
+#define KEY_D (-4)
+#define KEY_UP (-5)
+#define KEY_DOWN (-6)
+#define KEY_LEFT (-7)
+#define KEY_RIGHT (-8)
+#define KEY_SPACE (-9)
+#define KEY_Q (-10)
+#define KEY_ENTER (-11)
+#define KEY_BACKSPACE (-12)
 
 /*
  * KeyState — bitmask of all directions/actions active THIS frame.
@@ -26,5 +35,6 @@ void     kb_restore(void);
 Key      kb_get_key(void);
 Key      kb_drain_key(void);    /* legacy: drains buffer, returns last key  */
 KeyState kb_drain_keys(void);   /* V4: drains buffer, returns direction bitmask */
+char*    kb_read_string(int max_len);
 
 #endif /* KEYBOARD_H */

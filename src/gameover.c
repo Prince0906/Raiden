@@ -6,11 +6,6 @@
 #include "config.h"
 #include <unistd.h>   /* usleep */
 
-/* Poll interval while waiting on the game-over screen for Q press. */
-static void go_wait(void) {
-    usleep(FRAME_US);
-}
-
 /* ── gameover_show ───────────────────────────────────────────────────── */
 /*
  * Draws a centred panel inside the boundary box:
@@ -61,12 +56,5 @@ void gameover_show(void) {
 
     screen_flip();
 
-    /* ── Block until Q ── */
-    {
-        Key k = KEY_NONE;
-        while (k != KEY_Q) {
-            go_wait();
-            k = kb_get_key();
-        }
-    }
+    /* ── No longer block here, let main handle next steps ── */
 }

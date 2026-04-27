@@ -1,0 +1,14 @@
+# Build artifacts
+*.o
+raiden
+
+# Runtime data files
+users.txt
+leaderboard.txt
+current_user.txt
+
+# Editor/IDE
+.DS_Store
+*.swp
+*.swo
+*~
