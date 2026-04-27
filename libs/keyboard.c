@@ -3,6 +3,7 @@
 #include <stdlib.h>    /* atexit — allowed for process control            */
 #include <termios.h>   /* POSIX terminal control — hardware abstraction,
                           not a Standard C Library header                 */
+#include <unistd.h>    /* usleep */
 
 /*
  * Why termios?
@@ -65,6 +66,8 @@ Key kb_get_key(void) {
         case 'd': case 'D': return KEY_D;
         case ' ':           return KEY_SPACE;
         case 'q': case 'Q': return KEY_Q;
+        case '\n': case '\r': return KEY_ENTER;
+        case 127: case '\b': return KEY_BACKSPACE;
         case '\033': {
             int c2 = getchar();
             if (c2 == '[') {
@@ -79,7 +82,9 @@ Key kb_get_key(void) {
             }
             return KEY_NONE;
         }
-        default: return KEY_NONE;
+        default: 
+            if (c >= 32 && c <= 126) return c;
+            return KEY_NONE;
     }
 }
 
@@ -126,4 +131,24 @@ KeyState kb_drain_keys(void) {
         }
     }
     return state;
+}
+
+/* ── kb_read_string ──────────────────────────────────────────────────── */
+char* kb_read_string(int max_len) {
+    static char buf[256];
+    int len = 0;
+    buf[0] = 0;
+    while (1) {
+        Key k = kb_get_key();
+        if (k == KEY_ENTER) break;
+        if (k == KEY_BACKSPACE && len > 0) {
+            len--;
+            buf[len] = 0;
+        } else if (k >= 32 && k <= 126 && len < max_len - 1) {  // printable chars
+            buf[len++] = (char)k;
+            buf[len] = 0;
+        }
+        usleep(10000);  // small delay to prevent tight loop
+    }
+    return buf;
 }

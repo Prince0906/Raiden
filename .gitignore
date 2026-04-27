@@ -1,0 +1,12 @@
+# Build artifacts
+*.o
+raiden
+
+# Current session user (local only)
+current_user.txt
+
+# Editor/IDE
+.DS_Store
+*.swp
+*.swo
+*~
