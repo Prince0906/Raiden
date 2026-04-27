@@ -2,9 +2,7 @@
 *.o
 raiden
 
-# Runtime data files
-users.txt
-leaderboard.txt
+# Current session user (local only)
 current_user.txt
 
 # Editor/IDE
