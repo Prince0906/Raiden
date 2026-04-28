@@ -2,8 +2,8 @@
 #define CONFIG_H
 
 /* ── Screen ──────────────────────────────────────────────────────────── */
-#define SCREEN_W            100
-#define SCREEN_H            30
+#define SCREEN_W            120
+#define SCREEN_H            38
 
 /* ── Boundary box (visible walls) ────────────────────────────────────── */
 #define BORDER_TOP           0
@@ -65,7 +65,6 @@
 /* ── Player shooting (V5) ────────────────────────────────────────────── */
 #define PLAYER_BULLET_DAMAGE   20  /* base HP removed per player bullet       */
 #define PLAYER_SHOOT_COOLDOWN   6  /* 30 FPS: 200 ms between shots            */
-#define MAX_WEAPON_LEVEL        3  /* 0=single 1=boosted 2=triple 3=wide      */
 
 /* ── Enemies ─────────────────────────────────────────────────────────── */
 #define MAX_ENEMIES              6
@@ -73,12 +72,13 @@
 #define ENEMY_MID_HEALTH         50
 #define ENEMY_MOVE_FRAMES        4    /* 20 FPS: 200 ms/row, exits screen in ~5 s   */
 #define ENEMY_SPAWN_INTERVAL     60   /* 20 FPS: new enemy every 3 seconds           */
-#define ENEMY_NOOB_SHOOT_TIMER   15   /* 20 FPS: single shot every 0.75 s            */
-#define ENEMY_MID_SHOOT_TIMER    25   /* 20 FPS: spread salvo every 1.25 s           */
+#define ENEMY_NOOB_SHOOT_TIMER   20   /* 30 FPS: single shot every ~0.67s        */
+#define ENEMY_MID_SHOOT_TIMER    36   /* 30 FPS: spread salvo every ~1.2s         */
 #define ENEMY_NOOB_GLYPH         'V'
 #define ENEMY_MID_GLYPH          'W'
 #define ENEMY_SCORE_VALUE        100
 #define ENEMY_COLLISION_DAMAGE   25   /* HP lost when player body overlaps enemy     */
+#define HIT_FLASH_FRAMES         8    /* frames enemy flashes '!' + damage popup shows */
 
 /* ── Player health ────────────────────────────────────────────────────── */
 #define PLAYER_MAX_HEALTH        100

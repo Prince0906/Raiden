@@ -26,6 +26,10 @@ typedef struct {
     int       shoot_timer;
     int       move_timer;  /* per-enemy countdown: when 0, advance y by 1   */
     EnemyType type;
+
+    /* ── hit feedback ───────────────────────────────────────────────── */
+    int hit_flash;   /* > 0: draw centre as '!' this many frames           */
+    int hit_damage;  /* last damage received, shown as -N popup above      */
 } Enemy;
 
 void enemies_init(void);
