@@ -1,10 +1,19 @@
 #ifndef GAMEOVER_H
 #define GAMEOVER_H
 
+#include "gamestate.h"
+
 /*
- * gameover_show — renders the Game Over screen centred inside the
- * boundary box, displays the final score, and blocks until Q is pressed.
+ * gameover_show — renders the Game Over panel with final score and rank.
+ *
+ * score : the player's final score
+ * rank  : 1-based rank in the leaderboard (0 = unranked / off-board)
+ *
+ * Returns:
+ *   STATE_MENU        — player pressed R (replay / back to menu)
+ *   STATE_LEADERBOARD — player pressed L (view leaderboard)
+ *   STATE_QUIT        — player pressed Q
  */
-void gameover_show(void);
+GameState gameover_show(int score, int rank);
 
 #endif /* GAMEOVER_H */
