@@ -26,7 +26,7 @@ int  hud_get_score(void) { return score; }
  *  col: 2       9           50    54 55..64  65  67
  *       SCORE:  <score>     HP [  ==========  ]  <hp>
  */
-void hud_draw(int health, int weapon_level) {
+void hud_draw(int health) {
     char buf[INT_BUF_SIZE];
     int  filled;
     int  i;
@@ -36,10 +36,6 @@ void hud_draw(int health, int weapon_level) {
     int_to_str(score, buf, INT_BUF_SIZE);
     screen_draw_str(HUD_SCORE_COL + 7, HUD_ROW, buf);
 
-    /* ── Weapon level ── */
-    screen_draw_str(SCREEN_W / 2 - 4, HUD_ROW, "WPN:");
-    int_to_str(weapon_level, buf, INT_BUF_SIZE);
-    screen_draw_str(SCREEN_W / 2,     HUD_ROW, buf);
 
     /* ── Health bar ── */
     int hp_start = SCREEN_W - 30;

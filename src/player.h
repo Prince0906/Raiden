@@ -8,7 +8,6 @@
  *   x, y          : centre/nose position in screen-space
  *   health        : current HP (0..PLAYER_MAX_HEALTH)
  *   invincible    : immunity frames countdown after taking a hit
- *   weapon_level  : 0=single  1=boosted  2=triple  3=wide spread
  *   shoot_cooldown: frames until next SPACE shot is allowed
  */
 typedef struct {
@@ -16,7 +15,6 @@ typedef struct {
     int y;
     int health;
     int invincible;
-    int weapon_level;
     int shoot_cooldown;
 } Player;
 

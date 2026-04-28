@@ -1,6 +1,7 @@
 #include "enemy.h"
 #include "bullet.h"
 #include "screen.h"
+#include "string.h"   /* int_to_str — damage popup in enemies_draw */
 #include "config.h"
 
 /*
@@ -66,6 +67,8 @@ void enemies_init(void) {
         enemies[i].shoot_timer = 0;
         enemies[i].move_timer  = 0;
         enemies[i].type        = ENEMY_NOOB;
+        enemies[i].hit_flash   = 0;
+        enemies[i].hit_damage  = 0;
     }
 }
 
@@ -143,26 +146,48 @@ void enemies_update(unsigned int frame) {
     }
 }
 
-/* ── enemies_draw ────────────────────────────────────────────────────── */
+/* ── enemies_draw ────────────────────────────────────────────────── */
 /*
- * NOOB drawn as '/V\'   (3 cells wide)
- * MID  drawn as '/-W-\' (5 cells wide)
+ * NOOB drawn as '/V\'  (normal) or '/!\'  (hit flash)
+ * MID  drawn as '/-W-\' (normal) or '/-!-\' (hit flash)
+ * Damage popup: "-N" appears one row above the enemy for HIT_FLASH_FRAMES frames.
  */
 void enemies_draw(void) {
     int i;
     for (i = 0; i < MAX_ENEMIES; i++) {
         if (!enemies[i].active) continue;
-        
+
+        /* ── choose centre glyph ── */
+        char centre = (enemies[i].hit_flash > 0)
+                      ? '!'
+                      : (enemies[i].type == ENEMY_NOOB ? ENEMY_NOOB_GLYPH
+                                                        : ENEMY_MID_GLYPH);
+
         if (enemies[i].type == ENEMY_NOOB) {
             screen_draw_char(enemies[i].x - 1, enemies[i].y, '/');
-            screen_draw_char(enemies[i].x,     enemies[i].y, ENEMY_NOOB_GLYPH);
+            screen_draw_char(enemies[i].x,     enemies[i].y, centre);
             screen_draw_char(enemies[i].x + 1, enemies[i].y, '\\');
         } else {
             screen_draw_char(enemies[i].x - 2, enemies[i].y, '/');
             screen_draw_char(enemies[i].x - 1, enemies[i].y, '-');
-            screen_draw_char(enemies[i].x,     enemies[i].y, ENEMY_MID_GLYPH);
+            screen_draw_char(enemies[i].x,     enemies[i].y, centre);
             screen_draw_char(enemies[i].x + 1, enemies[i].y, '-');
             screen_draw_char(enemies[i].x + 2, enemies[i].y, '\\');
+        }
+
+        /* ── damage popup ── */
+        if (enemies[i].hit_flash > 0) {
+            /* build "-NN" string: '-' then digits from int_to_str */
+            char dmg_buf[INT_BUF_SIZE + 1];
+            dmg_buf[0] = '-';
+            int_to_str(enemies[i].hit_damage, dmg_buf + 1, INT_BUF_SIZE);
+            /* show one row above the enemy, centred on x */
+            int popup_y = enemies[i].y - 1;
+            int popup_x = enemies[i].x - 1;   /* "-20" is 3 chars, offset -1 centres it */
+            if (popup_y >= PLAY_Y_MIN)
+                screen_draw_str(popup_x, popup_y, dmg_buf);
+
+            enemies[i].hit_flash--;
         }
     }
 }
@@ -232,7 +257,11 @@ int enemies_process_player_bullets(void) {
         }
         
         if (dmg > 0) {
-            enemies[i].health -= dmg;
+            enemies[i].health    -= dmg;
+            /* ── trigger hit feedback ── */
+            enemies[i].hit_flash  = HIT_FLASH_FRAMES;
+            enemies[i].hit_damage = dmg;
+
             if (enemies[i].health <= 0) {
                 enemies[i].active  = 0;
                 total_score       += ENEMY_SCORE_VALUE;
