@@ -13,6 +13,9 @@ An infinite vertical shooter. Your plane flies. Bullets fall. Enemies attack. Yo
 There is no final level. There is no winning. There is only a higher score.
 
 ---
+## 🎥 Demo Video
+
+[![Raiden Demo](https://img.youtube.com/vi/YJnsA0SESpk/maxresdefault.jpg)](https://youtu.be/YJnsA0SESpk)
 
 ## Project rules (self-imposed constraints)
 
